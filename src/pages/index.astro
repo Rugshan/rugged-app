@@ -3,23 +3,20 @@ import Layout from '../layouts/Layout.astro';
 import App from '../components/App';
 ---
 
-<Layout title="Fitness Tracker">
+<Layout title="Rugged">
   <div id="app">
     <App client:load />
   </div>
 </Layout>
 
 <script>
-  // Service Worker Registration - Only in production
-  if ('serviceWorker' in navigator && !window.location.href.includes('localhost')) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js')
-        .then((registration) => {
-          console.log('Service Worker registered:', registration);
-        })
-        .catch((registrationError) => {
-          console.error('Service Worker registration failed:', registrationError);
-        });
+  // Temporarily disable service worker completely for debugging
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      for (let registration of registrations) {
+        registration.unregister();
+        console.log('Service Worker unregistered for debugging');
+      }
     });
   }
 </script>

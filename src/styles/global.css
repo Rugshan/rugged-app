@@ -1,1 +1,104 @@
 @import "tailwindcss";
+
+/* Dark theme only - force dark mode styles */
+html {
+  color-scheme: dark;
+}
+
+/* Override all light theme classes to use dark colors */
+.bg-gray-50 {
+  background-color: rgb(17 24 39) !important;
+}
+
+.bg-white {
+  background-color: rgb(31 41 55) !important;
+}
+
+.bg-gray-800 {
+  background-color: rgb(31 41 55) !important;
+}
+
+.bg-gray-900 {
+  background-color: rgb(17 24 39) !important;
+}
+
+.text-gray-900 {
+  color: rgb(255 255 255) !important;
+}
+
+.text-gray-600 {
+  color: rgb(209 213 219) !important;
+}
+
+.text-gray-300 {
+  color: rgb(209 213 219) !important;
+}
+
+.text-white {
+  color: rgb(255 255 255) !important;
+}
+
+.border-gray-200 {
+  border-color: rgb(55 65 81) !important;
+}
+
+.border-gray-300 {
+  border-color: rgb(75 85 99) !important;
+}
+
+.border-gray-600 {
+  border-color: rgb(75 85 99) !important;
+}
+
+.border-gray-700 {
+  border-color: rgb(55 65 81) !important;
+}
+
+.hover\:bg-gray-100:hover {
+  background-color: rgb(55 65 81) !important;
+}
+
+.hover\:bg-gray-700:hover {
+  background-color: rgb(55 65 81) !important;
+}
+
+.hover\:text-gray-900:hover {
+  color: rgb(255 255 255) !important;
+}
+
+.hover\:text-white:hover {
+  color: rgb(255 255 255) !important;
+}
+
+.divide-gray-200 > * + * {
+  border-color: rgb(55 65 81) !important;
+}
+
+.divide-gray-700 > * + * {
+  border-color: rgb(55 65 81) !important;
+}
+
+/* Card and container backgrounds */
+.bg-red-50 {
+  background-color: rgb(127 29 29) !important;
+}
+
+.bg-green-50 {
+  background-color: rgb(20 83 45) !important;
+}
+
+.bg-blue-50 {
+  background-color: rgb(30 58 138) !important;
+}
+
+.bg-orange-50 {
+  background-color: rgb(120 53 15) !important;
+}
+
+.bg-yellow-50 {
+  background-color: rgb(120 53 15) !important;
+}
+
+.bg-purple-50 {
+  background-color: rgb(88 28 135) !important;
+}

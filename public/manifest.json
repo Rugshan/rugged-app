@@ -1,6 +1,6 @@
 {
-  "name": "Fitness & Intake Tracker",
-  "short_name": "Fitness Tracker",
+  "name": "Rugged - Fitness & Intake Tracker",
+  "short_name": "Rugged",
   "description": "Personal Fitness & Intake Tracker - Track your daily nutrition and fitness goals",
   "start_url": "/",
   "display": "standalone",

@@ -1,10 +1,19 @@
-const CACHE_NAME = 'fitness-tracker-v1';
-
-// Don't run service worker in development
-if (self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1') {
-  console.log('Service Worker: Skipping in development mode');
+// Completely disable service worker in development
+if (self.location.hostname === 'localhost' || 
+    self.location.hostname === '127.0.0.1' ||
+    self.location.port === '4321' ||
+    self.location.port === '4322' ||
+    self.location.port === '4323' ||
+    self.location.port === '4324') {
+  console.log('Service Worker: Disabled in development mode');
+  // Stop all event listeners
+  self.removeEventListener('install', null);
+  self.removeEventListener('fetch', null);
+  self.removeEventListener('activate', null);
   return;
 }
+
+const CACHE_NAME = 'fitness-tracker-v1';
 
 self.addEventListener('install', (event) => {
   console.log('Service Worker: Installing...');
@@ -30,6 +39,15 @@ self.addEventListener('fetch', (event) => {
   if (event.request.url.includes('@vite') || 
       event.request.url.includes('@id') ||
       event.request.url.includes('?astro')) {
+    return;
+  }
+
+  // Don't cache CSS files to allow theme changes
+  if (event.request.url.includes('.css') || 
+      event.request.url.includes('_astro') ||
+      event.request.url.includes('index.css')) {
+    // Always fetch CSS files fresh from network
+    event.respondWith(fetch(event.request));
     return;
   }
 

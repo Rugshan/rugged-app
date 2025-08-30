@@ -4,7 +4,7 @@ export interface Props {
   description?: string;
 }
 
-const { title, description = "Personal Fitness & Intake Tracker - Track your daily nutrition and fitness goals" } = Astro.props;
+const { title, description = "Rugged - Personal Fitness & Intake Tracker" } = Astro.props;
 ---
 
 <!DOCTYPE html>
@@ -19,16 +19,18 @@ const { title, description = "Personal Fitness & Intake Tracker - Track your dai
     <meta name="theme-color" content="#3b82f6" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="Fitness Tracker" />
+    <meta name="apple-mobile-web-app-title" content="Rugged" />
     <link rel="apple-touch-icon" href="/favicon.svg" />
     <link rel="manifest" href="/manifest.json" />
     
     <title>{title}</title>
   </head>
-  <body class="bg-gray-50 min-h-screen">
+  <body class="bg-gray-900 min-h-screen">
     <slot />
   </body>
 </html>
+
+
 
 <style is:global>
   @import '../styles/global.css';

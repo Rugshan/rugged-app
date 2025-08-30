@@ -33,6 +33,7 @@ export interface Entry {
 }
 
 export interface NewEntry {
+  user_id: string
   type: string
   value: number
   unit: string
