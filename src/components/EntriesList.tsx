@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase, Entry } from '../lib/supabase';
-import { Droplets, Beef, Apple, Coffee, Activity, Trash2, Calendar, Clock } from 'lucide-react';
+import { Droplets, Beef, Apple, Coffee, Activity, Trash2, Clock } from 'lucide-react';
 
 const entryTypeIcons = {
   water: Droplets,
