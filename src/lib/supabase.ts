@@ -3,11 +3,23 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY
 
-// Create a dummy client for SSR if environment variables are missing
-export const supabase = createClient(
-  supabaseUrl || 'https://dummy.supabase.co',
-  supabaseAnonKey || 'dummy-key'
-)
+// Only create client if we have valid environment variables
+let supabase: any = null;
+
+// Check if environment variables are valid URLs/keys
+if (supabaseUrl && 
+    supabaseAnonKey && 
+    supabaseUrl.startsWith('https://') && 
+    supabaseAnonKey.length > 20) {
+  try {
+    supabase = createClient(supabaseUrl, supabaseAnonKey);
+  } catch (error) {
+    console.error('Failed to create Supabase client:', error);
+  }
+}
+
+// Export a safe client that handles missing configuration
+export { supabase };
 
 // Database types
 export interface Entry {

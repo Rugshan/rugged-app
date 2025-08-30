@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from './AuthProvider';
+import { signIn, signUp } from '../lib/auth';
 import { Activity, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 
 export default function LoginForm() {
@@ -10,8 +10,6 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
-
-  const { signIn, signUp } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,6 +32,7 @@ export default function LoginForm() {
         }
       }
     } catch (err) {
+      console.error('Form submission error:', err);
       setError('An unexpected error occurred');
     } finally {
       setLoading(false);

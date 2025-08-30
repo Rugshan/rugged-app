@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { NewEntry } from '../lib/supabase';
+import type { NewEntry } from '../lib/supabase';
 import { Plus, Droplets, Beef, Apple, Coffee, Activity } from 'lucide-react';
 
 const entryTypes = [
@@ -30,6 +30,12 @@ export default function EntryForm({ onEntryAdded }: { onEntryAdded: () => void }
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    if (!supabase) {
+      setError('Database service not configured');
+      setLoading(false);
+      return;
+    }
 
     try {
       const newEntry: NewEntry = {

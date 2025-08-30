@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { supabase, Entry } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
+import type { Entry } from '../lib/supabase';
 import { Droplets, Beef, Apple, Coffee, Activity, Trash2, Clock } from 'lucide-react';
 
 const entryTypeIcons = {
@@ -29,6 +30,12 @@ export default function EntriesList() {
   }, []);
 
   const fetchEntries = async () => {
+    if (!supabase) {
+      setError('Database service not configured');
+      setLoading(false);
+      return;
+    }
+
     try {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -52,6 +59,11 @@ export default function EntriesList() {
   };
 
   const deleteEntry = async (id: string) => {
+    if (!supabase) {
+      setError('Database service not configured');
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('entries')

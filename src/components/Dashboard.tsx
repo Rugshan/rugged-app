@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { useAuth } from './AuthProvider';
+import { getUser, signOut } from '../lib/auth';
 import EntryForm from './EntryForm';
 import EntriesList from './EntriesList';
 import { LogOut, User } from 'lucide-react';
 
 export default function Dashboard() {
-  const { user, signOut } = useAuth();
+  const user = getUser();
   const [refreshKey, setRefreshKey] = useState(0);
 
   const handleEntryAdded = () => {

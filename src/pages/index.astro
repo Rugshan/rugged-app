@@ -1,25 +1,24 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { AuthProvider } from '../components/AuthProvider';
 import App from '../components/App';
 ---
 
 <Layout title="Fitness Tracker">
-  <AuthProvider client:load>
+  <div id="app">
     <App client:load />
-  </AuthProvider>
+  </div>
 </Layout>
 
 <script>
-  // Service Worker Registration
-  if ('serviceWorker' in navigator) {
+  // Service Worker Registration - Only in production
+  if ('serviceWorker' in navigator && !window.location.href.includes('localhost')) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/sw.js')
         .then((registration) => {
-          console.log('SW registered: ', registration);
+          console.log('Service Worker registered:', registration);
         })
         .catch((registrationError) => {
-          console.log('SW registration failed: ', registrationError);
+          console.error('Service Worker registration failed:', registrationError);
         });
     });
   }
