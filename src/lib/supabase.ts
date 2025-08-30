@@ -38,4 +38,25 @@ export interface NewEntry {
   value: number
   unit: string
   notes?: string
+  created_at?: string
+}
+
+export interface QuickAdd {
+  id: string
+  user_id: string
+  created_at: string
+  type: string
+  label: string
+  amount: number
+  unit: string
+  sort_order: number
+}
+
+export interface NewQuickAdd {
+  user_id: string
+  type: string
+  label: string
+  amount: number
+  unit: string
+  sort_order?: number
 }

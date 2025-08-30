@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import type { NewEntry } from '../lib/supabase';
+import type { NewEntry, QuickAdd } from '../lib/supabase';
 import { getUser } from '../lib/auth';
 import { Plus, Droplets, Beef, Apple, Coffee, Activity, Flame } from 'lucide-react';
 
@@ -22,17 +22,38 @@ const units = {
   exercise: 'min',
 };
 
-const waterQuickAdds = [
-  { label: 'Cup', value: 250 },
-  { label: 'Bottle', value: 500 },
-];
-
-export default function EntryForm({ onEntryAdded, currentTheme }: { onEntryAdded: () => void; currentTheme?: boolean }) {
+export default function EntryForm({ onEntryAdded, currentTheme, selectedDate }: { onEntryAdded: () => void; currentTheme?: boolean; selectedDate?: Date }) {
   const [type, setType] = useState('water');
   const [value, setValue] = useState('');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [quickadds, setQuickadds] = useState<QuickAdd[]>([]);
+
+  useEffect(() => {
+    loadQuickadds();
+  }, []);
+
+  const loadQuickadds = async () => {
+    if (!supabase) return;
+
+    try {
+      const user = getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('quickadds')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('sort_order', { ascending: true });
+
+      if (!error && data) {
+        setQuickadds(data);
+      }
+    } catch (err) {
+      console.error('Error loading quickadds:', err);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,12 +74,18 @@ export default function EntryForm({ onEntryAdded, currentTheme }: { onEntryAdded
         return;
       }
 
+      // Create a custom timestamp for the selected date
+      const entryDate = selectedDate || new Date();
+      const entryTimestamp = new Date(entryDate);
+      entryTimestamp.setHours(new Date().getHours(), new Date().getMinutes(), new Date().getSeconds());
+
       const newEntry: NewEntry = {
         user_id: user.id,
         type,
         value: parseFloat(value),
         unit: units[type as keyof typeof units],
         notes: notes.trim() || undefined,
+        created_at: entryTimestamp.toISOString(),
       };
 
       const { error } = await supabase
@@ -119,19 +146,21 @@ export default function EntryForm({ onEntryAdded, currentTheme }: { onEntryAdded
             Amount ({units[type as keyof typeof units]})
           </label>
           
-          {/* Quick Add Buttons for Water */}
-          {type === 'water' && (
-            <div className="flex gap-2 mb-2">
-              {waterQuickAdds.map((quickAdd) => (
-                <button
-                  key={quickAdd.label}
-                  type="button"
-                  onClick={() => setValue(quickAdd.value.toString())}
-                  className="px-3 py-1 text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-md hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
-                >
-                  {quickAdd.label} ({quickAdd.value}ml)
-                </button>
-              ))}
+          {/* Quick Add Buttons */}
+          {quickadds.filter(qa => qa.type === type).length > 0 && (
+            <div className="flex gap-2 mb-2 flex-wrap">
+              {quickadds
+                .filter(qa => qa.type === type)
+                .map((quickAdd) => (
+                  <button
+                    key={quickAdd.id}
+                    type="button"
+                    onClick={() => setValue(quickAdd.amount.toString())}
+                    className="px-3 py-1 text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-md hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+                  >
+                    {quickAdd.label} ({quickAdd.amount}{quickAdd.unit})
+                  </button>
+                ))}
             </div>
           )}
           
