@@ -74,10 +74,15 @@ export default function EntryForm({ onEntryAdded, currentTheme, selectedDate }: 
         return;
       }
 
-      // Create a custom timestamp for the selected date
+      // Create a timestamp for the selected date with current time
       const entryDate = selectedDate || new Date();
+      const now = new Date();
       const entryTimestamp = new Date(entryDate);
-      entryTimestamp.setHours(new Date().getHours(), new Date().getMinutes(), new Date().getSeconds());
+      entryTimestamp.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+      
+      // Convert to UTC to ensure consistent timezone handling
+      const timezoneOffset = entryTimestamp.getTimezoneOffset() * 60000;
+      const utcTimestamp = new Date(entryTimestamp.getTime() - timezoneOffset);
 
       const newEntry: NewEntry = {
         user_id: user.id,
@@ -85,7 +90,7 @@ export default function EntryForm({ onEntryAdded, currentTheme, selectedDate }: 
         value: parseFloat(value),
         unit: units[type as keyof typeof units],
         notes: notes.trim() || undefined,
-        created_at: entryTimestamp.toISOString(),
+        created_at: utcTimestamp.toISOString(),
       };
 
       const { error } = await supabase

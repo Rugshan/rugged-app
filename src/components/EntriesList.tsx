@@ -114,7 +114,9 @@ export default function EntriesList({ currentTheme, selectedDate, onDateChange }
   }, {} as Record<string, { value: number; unit: string }>);
 
   const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString('en-US', { 
+    // Parse the UTC date and convert to local time for display
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('en-US', { 
       hour: 'numeric', 
       minute: '2-digit',
       hour12: true
