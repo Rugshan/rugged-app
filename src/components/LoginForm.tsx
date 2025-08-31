@@ -92,7 +92,16 @@ export default function LoginForm({ authError }: LoginFormProps) {
           <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
             <Activity className="h-6 w-6 text-blue-600" />
           </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
+          <h1 className="mt-6 text-center text-2xl font-bold text-gray-900 dark:text-white">
+            Rugged
+          </h1>
+          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+            Fitness & Intake Tracking
+          </p>
+          <p className="mt-1 text-center text-xs text-gray-500 dark:text-gray-500">
+            Track your daily nutrition, hydration, and fitness goals
+          </p>
+          <h2 className="mt-6 text-center text-xl font-semibold text-gray-900 dark:text-white">
             {isLogin ? 'Sign in to your account' : 'Create your account'}
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
@@ -206,9 +215,24 @@ export default function LoginForm({ authError }: LoginFormProps) {
               </button>
             </div>
           </div>
-          */}
-        </form>
-      </div>
-    </div>
-  );
-}
+                     */}
+         </form>
+         
+         {/* Footer */}
+         <div className="mt-8 text-center">
+           <p className="text-xs text-gray-500 dark:text-gray-400">
+             Made with ❤️ by{' '}
+             <a 
+               href="https://rugshan.dev" 
+               target="_blank" 
+               rel="noopener noreferrer"
+               className="text-blue-600 hover:text-blue-500 transition-colors"
+             >
+               rugshan.dev
+             </a>
+           </p>
+         </div>
+       </div>
+     </div>
+   );
+ }
