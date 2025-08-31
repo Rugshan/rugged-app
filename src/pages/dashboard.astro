@@ -1,0 +1,39 @@
+---
+import Layout from '../layouts/Layout.astro';
+import DashboardApp from '../components/DashboardApp';
+---
+
+<Layout title="Dashboard - Rugged">
+  <div id="dashboard-app">
+    <DashboardApp client:load />
+  </div>
+</Layout>
+
+<script>
+  // Temporarily disable service worker completely for debugging
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      for (let registration of registrations) {
+        registration.unregister();
+        console.log('Service Worker unregistered for debugging');
+      }
+    });
+  }
+
+  // Handle auth errors from URL parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const error = urlParams.get('error');
+  
+  if (error) {
+    // Store the error message to be displayed by the App component
+    sessionStorage.setItem('authError', error);
+    // Clean up the URL
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+</script>
+
+<style>
+  #dashboard-app {
+    min-height: 100vh;
+  }
+</style>

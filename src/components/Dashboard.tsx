@@ -44,6 +44,8 @@ export default function Dashboard() {
 
   const handleSignOut = async () => {
     await signOut();
+    // Redirect to homepage after sign out
+    window.location.href = '/';
   };
 
   return (
@@ -52,8 +54,11 @@ export default function Dashboard() {
       <header className="bg-white dark:bg-gray-800 shadow transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
-            <div className="flex items-center">
+            <div className="flex items-center space-x-4">
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">💪🏽 Rugged</h1>
+              <a href="/" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                Back to Home
+              </a>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-4">
               {/* User Info - Hidden on mobile, shown on desktop */}

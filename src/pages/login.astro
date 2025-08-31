@@ -1,0 +1,29 @@
+---
+import Layout from '../layouts/Layout.astro';
+import LoginForm from '../components/LoginForm';
+---
+
+<Layout title="Sign In - Rugged">
+  <div id="login-app">
+    <LoginForm client:load />
+  </div>
+</Layout>
+
+<script>
+  // Handle auth errors from URL parameters
+  const urlParams = new URLSearchParams(window.location.search);
+  const error = urlParams.get('error');
+  
+  if (error) {
+    // Store the error message to be displayed by the LoginForm component
+    sessionStorage.setItem('authError', error);
+    // Clean up the URL
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+</script>
+
+<style>
+  #login-app {
+    min-height: 100vh;
+  }
+</style>
