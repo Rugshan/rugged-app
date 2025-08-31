@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import type { Entry } from '../lib/supabase';
+import { formatTimeForDisplay, formatDateForDisplay, getDayBoundsInUtc } from '../lib/timezone';
 import { Droplets, Beef, Apple, Coffee, Activity, Trash2, Clock, Flame, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 
 const entryTypeIcons = {
@@ -39,45 +40,37 @@ export default function EntriesList({ currentTheme, selectedDate, onDateChange }
     }
   }, [selectedDate]);
 
-  const fetchEntries = async () => {
-    if (!supabase) {
-      setError('Database service not configured');
-      setLoading(false);
-      return;
-    }
+     const fetchEntries = async () => {
+     if (!supabase) {
+       setError('Database service not configured');
+       setLoading(false);
+       return;
+     }
 
-    try {
-      // Get user's timezone offset in minutes
-      const timezoneOffset = new Date().getTimezoneOffset();
-      
-      const startOfDay = new Date(localSelectedDate);
-      startOfDay.setHours(0, 0, 0, 0);
-      
-      const endOfDay = new Date(localSelectedDate);
-      endOfDay.setHours(23, 59, 59, 999);
+     try {
+       // Get day bounds in UTC for the selected date
+       const { start, end } = getDayBoundsInUtc(localSelectedDate);
+       console.log('start', start.toISOString());
+       console.log('end', end.toISOString());
 
-      // Convert to UTC for database query, accounting for timezone offset
-      const utcStartOfDay = new Date(startOfDay.getTime() - (timezoneOffset * 60000));
-      const utcEndOfDay = new Date(endOfDay.getTime() - (timezoneOffset * 60000));
+       const { data, error } = await supabase
+         .from('entries')
+         .select('*')
+         .gte('created_at', start.toISOString())
+         .lte('created_at', end.toISOString())
+         .order('created_at', { ascending: false });
 
-      const { data, error } = await supabase
-        .from('entries')
-        .select('*')
-        .gte('created_at', utcStartOfDay.toISOString())
-        .lte('created_at', utcEndOfDay.toISOString())
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        setError(error.message);
-      } else {
-        setEntries(data || []);
-      }
-    } catch (err) {
-      setError('Failed to fetch entries');
-    } finally {
-      setLoading(false);
-    }
-  };
+       if (error) {
+         setError(error.message);
+       } else {
+         setEntries(data || []);
+       }
+     } catch (err) {
+       setError('Failed to fetch entries');
+     } finally {
+       setLoading(false);
+     }
+   };
 
   const deleteEntry = async (id: string) => {
     if (!supabase) {
@@ -113,24 +106,22 @@ export default function EntriesList({ currentTheme, selectedDate, onDateChange }
     return acc;
   }, {} as Record<string, { value: number; unit: string }>);
 
-  const formatTime = (dateString: string) => {
-    // Parse the UTC date and convert to local time for display
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit',
-      hour12: true
-    });
-  };
+        const formatTime = (dateString: string) => {
+     return formatTimeForDisplay(dateString, { 
+       hour: 'numeric', 
+       minute: '2-digit',
+       hour12: true
+     });
+   };
 
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
-  };
+   const formatDate = (date: Date) => {
+     return formatDateForDisplay(date, { 
+       weekday: 'long', 
+       year: 'numeric', 
+       month: 'long', 
+       day: 'numeric' 
+     });
+   };
 
   const navigateDate = (direction: 'prev' | 'next') => {
     const newDate = new Date(localSelectedDate);

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import type { QuickAdd, NewQuickAdd, Goal, NewGoal } from '../lib/supabase';
 import { getUser } from '../lib/auth';
-import { Plus, Trash2, Save, X, Droplets, Beef, Apple, Coffee, Activity, Flame, Target } from 'lucide-react';
+import { Plus, Trash2, Save, X, Droplets, Beef, Apple, Coffee, Activity, Flame, Target, Globe } from 'lucide-react';
+import TimezoneSettings from './TimezoneSettings';
 
 const entryTypes = [
   { value: 'water', label: 'Water', icon: Droplets, color: 'text-blue-500' },
@@ -23,7 +24,7 @@ const units = {
 };
 
 export default function Settings() {
-  const [activeTab, setActiveTab] = useState<'quickadds' | 'goals'>('quickadds');
+  const [activeTab, setActiveTab] = useState<'quickadds' | 'goals' | 'timezone'>('quickadds');
   const [quickadds, setQuickadds] = useState<QuickAdd[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -340,6 +341,17 @@ export default function Settings() {
           >
             Goals
           </button>
+          <button
+            onClick={() => setActiveTab('timezone')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === 'timezone'
+                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+            }`}
+          >
+            <Globe className="h-4 w-4 inline mr-1" />
+            Timezone
+          </button>
         </div>
       </div>
 
@@ -616,6 +628,13 @@ export default function Settings() {
               </button>
             </form>
           )}
+        </div>
+      )}
+
+      {/* Timezone Tab */}
+      {activeTab === 'timezone' && (
+        <div>
+          <TimezoneSettings />
         </div>
       )}
     </div>

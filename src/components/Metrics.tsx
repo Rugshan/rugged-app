@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import type { Entry, Goal } from '../lib/supabase';
+import { formatDateForDisplay, getDayBoundsInUtc } from '../lib/timezone';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -85,18 +86,29 @@ export default function Metrics({ currentTheme }: { currentTheme?: boolean }) {
       
       if (timeRange === 'daily') {
         // For daily view, get today's entries only
-        startDate.setHours(0, 0, 0, 0);
-        endDate.setHours(23, 59, 59, 999);
+        const { start, end } = getDayBoundsInUtc(new Date());
+        startDate.setTime(start.getTime());
+        endDate.setTime(end.getTime());
       } else if (timeRange === 'week') {
         // For week view, get last 7 days including today
-        startDate.setDate(endDate.getDate() - 6); // 7 days total (including today)
-        startDate.setHours(0, 0, 0, 0);
-        endDate.setHours(23, 59, 59, 999);
+        const today = new Date();
+        const weekStart = new Date(today);
+        weekStart.setDate(today.getDate() - 6);
+        const { start } = getDayBoundsInUtc(weekStart);
+        const { end } = getDayBoundsInUtc(today);
+        startDate.setTime(start.getTime());
+        endDate.setTime(end.getTime());
       } else {
         // For month view, get last 30 days including today
-        startDate.setDate(endDate.getDate() - 29); // 30 days total (including today)
-        startDate.setHours(0, 0, 0, 0);
-        endDate.setHours(23, 59, 59, 999);
+        const today = new Date();
+        const monthStart = new Date(today);
+        monthStart.setDate(today.getDate() - 29);
+        const { start } = getDayBoundsInUtc(monthStart);
+        const monthEnd = new Date(today);
+        monthEnd.setDate(today.getDate());
+        const { end } = getDayBoundsInUtc(monthEnd);
+        startDate.setTime(start.getTime());
+        endDate.setTime(end.getTime());
       }
 
       // Query database for entries in the date range
@@ -237,7 +249,7 @@ export default function Metrics({ currentTheme }: { currentTheme?: boolean }) {
   const formatDate = (dateStr: string) => {
     const [year, month, day] = dateStr.split('-').map(Number);
     const date = new Date(year, month - 1, day);
-    return date.toLocaleDateString('en-US', { 
+    return formatDateForDisplay(date, { 
       weekday: 'short', 
       month: 'short', 
       day: 'numeric' 
