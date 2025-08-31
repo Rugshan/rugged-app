@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import type { Entry } from '../lib/supabase';
+import type { Entry, Goal } from '../lib/supabase';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -26,31 +26,25 @@ interface WeeklyData {
   exercise: number;
 }
 
-interface Goal {
-  type: string;
-  target: number;
-  unit: string;
-  icon: any;
-  color: string;
-}
-
-const defaultGoals: Goal[] = [
-  { type: 'water', target: 2000, unit: 'ml', icon: Droplets, color: 'text-blue-500' },
-  { type: 'protein', target: 150, unit: 'g', icon: Beef, color: 'text-red-500' },
-  { type: 'carbs', target: 200, unit: 'g', icon: Apple, color: 'text-green-500' },
-  { type: 'calories', target: 2000, unit: 'kcal', icon: Flame, color: 'text-orange-500' },
-  { type: 'exercise', target: 30, unit: 'min', icon: Activity, color: 'text-purple-500' },
+const entryTypes = [
+  { value: 'water', label: 'Water', icon: Droplets, color: 'text-blue-500' },
+  { value: 'protein', label: 'Protein', icon: Beef, color: 'text-red-500' },
+  { value: 'carbs', label: 'Carbs', icon: Apple, color: 'text-green-500' },
+  { value: 'calories', label: 'Calories', icon: Flame, color: 'text-orange-500' },
+  { value: 'caffeine', label: 'Caffeine', icon: Coffee, color: 'text-yellow-600' },
+  { value: 'exercise', label: 'Exercise', icon: Activity, color: 'text-purple-500' },
 ];
 
 export default function Metrics({ currentTheme }: { currentTheme?: boolean }) {
   const [entries, setEntries] = useState<Entry[]>([]);
+  const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [timeRange, setTimeRange] = useState<'week' | 'month'>('week');
-  const [goals, setGoals] = useState<Goal[]>(defaultGoals);
 
   useEffect(() => {
     fetchEntries();
+    fetchGoals();
   }, [timeRange]);
 
   const fetchEntries = async () => {
@@ -86,6 +80,23 @@ export default function Metrics({ currentTheme }: { currentTheme?: boolean }) {
       setError('Failed to fetch entries');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchGoals = async () => {
+    if (!supabase) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('goals')
+        .select('*')
+        .order('sort_order', { ascending: true });
+
+      if (!error && data) {
+        setGoals(data);
+      }
+    } catch (err) {
+      console.error('Error loading goals:', err);
     }
   };
 
@@ -139,6 +150,16 @@ export default function Metrics({ currentTheme }: { currentTheme?: boolean }) {
     return { percentage, current, target: goal.target };
   };
 
+  const getGoalIcon = (type: string) => {
+    const entryType = entryTypes.find(t => t.value === type);
+    return entryType?.icon || Target;
+  };
+
+  const getGoalColor = (type: string) => {
+    const entryType = entryTypes.find(t => t.value === type);
+    return entryType?.color || 'text-blue-500';
+  };
+
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('en-US', { 
       weekday: 'short', 
@@ -189,113 +210,166 @@ export default function Metrics({ currentTheme }: { currentTheme?: boolean }) {
       {/* Goal Progress */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 transition-colors duration-200">
         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Goal Progress</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {goals.map((goal) => {
-            const progress = getGoalProgress(goal.type);
-            const Icon = goal.icon;
-            
-            return (
-              <div key={goal.type} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                <div className="flex items-center space-x-3 mb-3">
-                  <Icon className={`h-6 w-6 ${goal.color}`} />
-                  <div>
-                    <h4 className="font-medium text-gray-900 dark:text-white capitalize">{goal.type}</h4>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {progress.current.toFixed(1)} / {progress.target} {goal.unit}
-                    </p>
+        {goals.length === 0 ? (
+          <div className="text-center py-8">
+            <Target className="h-12 w-12 mx-auto text-gray-400 dark:text-gray-500 mb-4" />
+            <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Goals Set</h4>
+            <p className="text-gray-500 dark:text-gray-400 mb-4">
+              Set up daily goals to track your progress and stay motivated.
+            </p>
+            <button
+              onClick={() => window.location.hash = '#settings'}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            >
+              <Target className="h-4 w-4 mr-2" />
+              Configure Goals
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {goals.map((goal) => {
+              const progress = getGoalProgress(goal.type);
+              const Icon = getGoalIcon(goal.type);
+              const color = getGoalColor(goal.type);
+              
+              return (
+                <div key={goal.id} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <Icon className={`h-6 w-6 ${color}`} />
+                    <div>
+                      <h4 className="font-medium text-gray-900 dark:text-white capitalize">{goal.type}</h4>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {progress.current.toFixed(1)} / {progress.target} {goal.unit}
+                      </p>
+                    </div>
                   </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div
+                      className={`h-2 rounded-full transition-all duration-300 ${
+                        progress.percentage >= 100 ? 'bg-green-500' : 'bg-blue-500'
+                      }`}
+                      style={{ width: `${progress.percentage}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    {progress.percentage.toFixed(1)}% complete
+                  </p>
                 </div>
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                  <div
-                    className={`h-2 rounded-full transition-all duration-300 ${
-                      progress.percentage >= 100 ? 'bg-green-500' : 'bg-blue-500'
-                    }`}
-                    style={{ width: `${progress.percentage}%` }}
-                  ></div>
-                </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  {progress.percentage.toFixed(1)}% complete
-                </p>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Weekly Trends */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 transition-colors duration-200">
         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Daily Trends</h3>
-        <div className="space-y-4">
-          {getWeeklyData().map((dayData) => (
-            <div key={dayData.date} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-              <h4 className="font-medium text-gray-900 dark:text-white mb-3">
-                {formatDate(dayData.date)}
-              </h4>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-                {Object.entries(dayData).filter(([key]) => key !== 'date').map(([type, value]) => {
-                  const goal = goals.find(g => g.type === type);
-                  if (!goal) return null;
-                  
-                  const Icon = goal.icon;
-                  const isComplete = value >= goal.target;
-                  
-                  return (
-                    <div key={type} className="text-center">
-                      <Icon className={`h-5 w-5 mx-auto mb-1 ${goal.color}`} />
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">
-                        {value.toFixed(1)}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {goal.unit}
-                      </p>
-                      {isComplete && (
-                        <div className="mt-1">
-                          <Target className="h-3 w-3 mx-auto text-green-500" />
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+        {goals.length === 0 ? (
+          <div className="text-center py-8">
+            <BarChart3 className="h-12 w-12 mx-auto text-gray-400 dark:text-gray-500 mb-4" />
+            <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Goals to Track</h4>
+            <p className="text-gray-500 dark:text-gray-400 mb-4">
+              Set up goals in Settings to see your daily progress and trends.
+            </p>
+            <button
+              onClick={() => window.location.hash = '#settings'}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            >
+              <Target className="h-4 w-4 mr-2" />
+              Set Up Goals
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {getWeeklyData().map((dayData) => (
+              <div key={dayData.date} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <h4 className="font-medium text-gray-900 dark:text-white mb-3">
+                  {formatDate(dayData.date)}
+                </h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                  {Object.entries(dayData).filter(([key]) => key !== 'date').map(([type, value]) => {
+                    const goal = goals.find(g => g.type === type);
+                    if (!goal) return null;
+                    
+                    const Icon = getGoalIcon(type);
+                    const color = getGoalColor(type);
+                    const isComplete = value >= goal.target;
+                    
+                    return (
+                      <div key={type} className="text-center">
+                        <Icon className={`h-5 w-5 mx-auto mb-1 ${color}`} />
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          {value.toFixed(1)}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {goal.unit}
+                        </p>
+                        {isComplete && (
+                          <div className="mt-1">
+                            <Target className="h-3 w-3 mx-auto text-green-500" />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Summary Stats */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 transition-colors duration-200">
         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Summary Statistics</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full mb-3">
-              <BarChart3 className="h-6 w-6 text-blue-500" />
-            </div>
-            <h4 className="text-lg font-bold text-gray-900 dark:text-white">
-              {entries.length}
-            </h4>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Total Entries</p>
+        {entries.length === 0 ? (
+          <div className="text-center py-8">
+            <BarChart3 className="h-12 w-12 mx-auto text-gray-400 dark:text-gray-500 mb-4" />
+            <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Data Yet</h4>
+            <p className="text-gray-500 dark:text-gray-400 mb-4">
+              Start adding entries to see your statistics and track your progress.
+            </p>
+            <button
+              onClick={() => window.location.hash = ''}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            >
+              <List className="h-4 w-4 mr-2" />
+              Add Entry
+            </button>
           </div>
-          
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full mb-3">
-              <Calendar className="h-6 w-6 text-green-500" />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full mb-3">
+                <BarChart3 className="h-6 w-6 text-blue-500" />
+              </div>
+              <h4 className="text-lg font-bold text-gray-900 dark:text-white">
+                {entries.length}
+              </h4>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Total Entries</p>
             </div>
-            <h4 className="text-lg font-bold text-gray-900 dark:text-white">
-              {Math.ceil(entries.length / (timeRange === 'week' ? 7 : 30))}
-            </h4>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Avg Entries/Day</p>
-          </div>
-          
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-full mb-3">
-              <TrendingUp className="h-6 w-6 text-purple-500" />
+            
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full mb-3">
+                <Calendar className="h-6 w-6 text-green-500" />
+              </div>
+              <h4 className="text-lg font-bold text-gray-900 dark:text-white">
+                {Math.ceil(entries.length / (timeRange === 'week' ? 7 : 30))}
+              </h4>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Avg Entries/Day</p>
             </div>
-            <h4 className="text-lg font-bold text-gray-900 dark:text-white">
-              {new Set(entries.map(e => e.type)).size}
-            </h4>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Active Categories</p>
+            
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-full mb-3">
+                <TrendingUp className="h-6 w-6 text-purple-500" />
+              </div>
+              <h4 className="text-lg font-bold text-gray-900 dark:text-white">
+                {new Set(entries.map(e => e.type)).size}
+              </h4>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Active Categories</p>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {error && (

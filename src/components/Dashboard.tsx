@@ -15,6 +15,23 @@ export default function Dashboard() {
 
   useEffect(() => {
     setIsClient(true);
+    
+    // Handle hash navigation
+    const handleHashChange = () => {
+      if (window.location.hash === '#settings') {
+        setActiveTab('settings');
+      }
+    };
+
+    // Check initial hash
+    handleHashChange();
+
+    // Listen for hash changes
+    window.addEventListener('hashchange', handleHashChange);
+    
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
   }, []);
 
   const handleEntryAdded = () => {

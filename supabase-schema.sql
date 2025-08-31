@@ -62,3 +62,35 @@ create index idx_entries_type on entries(type);
 create index idx_quickadds_user_id on quickadds(user_id);
 create index idx_quickadds_type on quickadds(type);
 create index idx_quickadds_sort_order on quickadds(sort_order);
+
+-- Create goals table for user-configurable goals
+create table goals (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade,
+  created_at timestamp with time zone default now(),
+  type text not null,
+  target numeric not null,
+  unit text not null,
+  sort_order integer default 0
+);
+
+-- Enable Row Level Security for goals
+alter table goals enable row level security;
+
+-- Create RLS policies for goals
+create policy "Users can view their own goals" 
+  on goals for select using (auth.uid() = user_id);
+
+create policy "Users can insert their own goals" 
+  on goals for insert with check (auth.uid() = user_id);
+
+create policy "Users can update their own goals" 
+  on goals for update using (auth.uid() = user_id);
+
+create policy "Users can delete their own goals" 
+  on goals for delete using (auth.uid() = user_id);
+
+-- Create indexes for goals table
+create index idx_goals_user_id on goals(user_id);
+create index idx_goals_type on goals(type);
+create index idx_goals_sort_order on goals(sort_order);

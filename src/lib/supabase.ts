@@ -60,3 +60,21 @@ export interface NewQuickAdd {
   unit: string
   sort_order?: number
 }
+
+export interface Goal {
+  id: string
+  user_id: string
+  created_at: string
+  type: string
+  target: number
+  unit: string
+  sort_order: number
+}
+
+export interface NewGoal {
+  user_id: string
+  type: string
+  target: number
+  unit: string
+  sort_order?: number
+}

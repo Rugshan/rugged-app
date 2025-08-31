@@ -34,11 +34,18 @@ After running the schema, you should see:
 - Quick adds are filtered by entry type and displayed when that type is selected
 - Users can edit and delete their quick adds
 
+### Configurable Goals
+- Users can now set custom daily goals for any entry type
+- Each goal has a target amount and automatically uses the correct unit
+- Goals are used in the Metrics page to show progress tracking
+- Users can edit and delete their goals
+
 ### Settings Page
-- New Settings tab in the main navigation
-- Interface for managing quick add buttons
-- Add, edit, and delete functionality
-- Visual indicators showing the entry type for each quick add
+- New Settings tab in the main navigation with two sub-tabs:
+  - **Quick Adds**: Interface for managing quick add buttons
+  - **Goals**: Interface for managing daily goals
+- Add, edit, and delete functionality for both quick adds and goals
+- Visual indicators showing the entry type for each item
 
 ## Database Schema Changes
 
@@ -56,11 +63,27 @@ create table quickadds (
 );
 ```
 
+### New Table: `goals`
+```sql
+create table goals (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade,
+  created_at timestamp with time zone default now(),
+  type text not null,
+  target numeric not null,
+  unit text not null,
+  sort_order integer default 0
+);
+```
+
 ### RLS Policies
-- Users can only view, insert, update, and delete their own quick adds
+- Users can only view, insert, update, and delete their own quick adds and goals
 - All operations are protected by Row Level Security
 
 ### Indexes
 - `idx_quickadds_user_id` - for efficient user-based queries
 - `idx_quickadds_type` - for filtering by entry type
 - `idx_quickadds_sort_order` - for maintaining order
+- `idx_goals_user_id` - for efficient user-based queries
+- `idx_goals_type` - for filtering by entry type
+- `idx_goals_sort_order` - for maintaining order
