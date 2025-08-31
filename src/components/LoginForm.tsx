@@ -15,6 +15,7 @@ export default function LoginForm({ authError }: LoginFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Set auth error from props if available
   React.useEffect(() => {
@@ -67,6 +68,22 @@ export default function LoginForm({ authError }: LoginFormProps) {
     }
   };
 
+  const handleToggleMode = () => {
+    setIsTransitioning(true);
+    setError('');
+    setMessage('');
+    
+    // Clear form fields during transition
+    setEmail('');
+    setPassword('');
+    setShowPassword(false);
+    
+    setTimeout(() => {
+      setIsLogin(!isLogin);
+      setIsTransitioning(false);
+    }, 150); // Half of the transition duration
+  };
+
   // Apple Sign-In temporarily disabled - requires paid Apple Developer account
   /*
   const handleAppleSignIn = async () => {
@@ -96,7 +113,7 @@ export default function LoginForm({ authError }: LoginFormProps) {
             ← Back to Home
           </a>
         </div>
-        <div>
+        <div className="relative overflow-hidden">
           <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
             <Activity className="h-6 w-6 text-blue-600" />
           </div>
@@ -109,22 +126,33 @@ export default function LoginForm({ authError }: LoginFormProps) {
           <p className="mt-1 text-center text-xs text-gray-500 dark:text-gray-500">
             Track your daily nutrition, hydration, and fitness goals
           </p>
-          <h2 className="mt-6 text-center text-xl font-semibold text-gray-900 dark:text-white">
-            {isLogin ? 'Sign in to your account' : 'Create your account'}
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-            {isLogin ? "Don't have an account? " : "Already have an account? "}
-            <button
-              type="button"
-              className="font-medium text-blue-600 hover:text-blue-500"
-              onClick={() => setIsLogin(!isLogin)}
-            >
-              {isLogin ? 'Sign up' : 'Sign in'}
-            </button>
-          </p>
+          
+          {/* Animated title and description */}
+          <div className="mt-6 relative h-20">
+            <div className={`absolute inset-0 transition-all duration-300 ease-in-out ${
+              isTransitioning ? 'opacity-0 transform -translate-y-2' : 'opacity-100 transform translate-y-0'
+            }`}>
+              <h2 className="text-center text-xl font-semibold text-gray-900 dark:text-white">
+                {isLogin ? 'Sign in to your account' : 'Create your account'}
+              </h2>
+              <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+                {isLogin ? "Don't have an account? " : "Already have an account? "}
+                <button
+                  type="button"
+                  className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+                  onClick={handleToggleMode}
+                  disabled={isTransitioning}
+                >
+                  {isLogin ? 'Sign up' : 'Sign in'}
+                </button>
+              </p>
+            </div>
+          </div>
         </div>
         
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className={`mt-8 space-y-6 transition-all duration-300 ease-in-out ${
+          isTransitioning ? 'opacity-50 transform scale-95' : 'opacity-100 transform scale-100'
+        }`} onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -136,7 +164,8 @@ export default function LoginForm({ authError }: LoginFormProps) {
                 type="email"
                 autoComplete="email"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 pl-10 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors duration-200"
+                disabled={isTransitioning}
+                className="appearance-none rounded-none relative block w-full px-3 py-2 pl-10 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -152,7 +181,8 @@ export default function LoginForm({ authError }: LoginFormProps) {
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="current-password"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 pl-10 pr-10 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors duration-200"
+                disabled={isTransitioning}
+                className="appearance-none rounded-none relative block w-full px-3 py-2 pl-10 pr-10 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-700 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -161,6 +191,7 @@ export default function LoginForm({ authError }: LoginFormProps) {
                 type="button"
                 className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 onClick={() => setShowPassword(!showPassword)}
+                disabled={isTransitioning}
               >
                 {showPassword ? (
                   <EyeOff className="h-5 w-5 text-gray-400" />
@@ -172,13 +203,13 @@ export default function LoginForm({ authError }: LoginFormProps) {
           </div>
 
           {error && (
-            <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-4">
+            <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-4 transition-all duration-300 ease-in-out">
               <div className="text-sm text-red-700 dark:text-red-300">{error}</div>
             </div>
           )}
 
           {message && (
-            <div className="rounded-md bg-green-50 dark:bg-green-900/20 p-4">
+            <div className="rounded-md bg-green-50 dark:bg-green-900/20 p-4 transition-all duration-300 ease-in-out">
               <div className="text-sm text-green-700 dark:text-green-300">{message}</div>
             </div>
           )}
@@ -186,8 +217,8 @@ export default function LoginForm({ authError }: LoginFormProps) {
           <div>
             <button
               type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading || isTransitioning}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
               {loading ? (
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
