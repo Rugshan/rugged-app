@@ -2,6 +2,23 @@ import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY
+// Automatically detect the correct site URL
+const getSiteUrl = () => {
+  // If environment variable is set, use it
+  if (import.meta.env.PUBLIC_SITE_URL) {
+    return import.meta.env.PUBLIC_SITE_URL;
+  }
+  
+  // If running in browser, use the current origin
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  
+  // Fallback for server-side rendering
+  return 'http://localhost:4321';
+};
+
+const siteUrl = getSiteUrl();
 
 // Only create client if we have valid environment variables
 let supabase: any = null;
@@ -12,14 +29,20 @@ if (supabaseUrl &&
     supabaseUrl.startsWith('https://') && 
     supabaseAnonKey.length > 20) {
   try {
-    supabase = createClient(supabaseUrl, supabaseAnonKey);
+    supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true
+      }
+    });
   } catch (error) {
     console.error('Failed to create Supabase client:', error);
   }
 }
 
 // Export a safe client that handles missing configuration
-export { supabase };
+export { supabase, siteUrl };
 
 // Database types
 export interface Entry {

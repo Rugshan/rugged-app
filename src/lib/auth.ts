@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase, siteUrl } from './supabase';
 import type { User, Session } from '@supabase/supabase-js';
 
 // Global state
@@ -22,7 +22,7 @@ export async function initializeAuth() {
     currentUser = session?.user ?? null;
     
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: string, session: Session | null) => {
       currentSession = session;
       currentUser = session?.user ?? null;
       notifyListeners();
@@ -61,9 +61,15 @@ export async function signUp(email: string, password: string) {
   }
   
   try {
+    // Get the current site URL dynamically
+    const currentSiteUrl = typeof window !== 'undefined' ? window.location.origin : siteUrl;
+    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: `${currentSiteUrl}/auth/callback`
+      }
     });
     return { error };
   } catch (error) {
@@ -71,6 +77,28 @@ export async function signUp(email: string, password: string) {
     return { error: { message: 'Authentication service not available' } };
   }
 }
+
+// Apple Sign-In temporarily disabled - requires paid Apple Developer account
+/*
+export async function signInWithApple() {
+  if (!supabase) {
+    return { error: { message: 'Authentication service not configured' } };
+  }
+  
+  try {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'apple',
+      options: {
+        redirectTo: `${siteUrl}/auth/callback`
+      }
+    });
+    return { data, error };
+  } catch (error) {
+    console.error('Apple sign in error:', error);
+    return { error: { message: 'Apple Sign-In is not available' } };
+  }
+}
+*/
 
 export async function signOut() {
   if (!supabase) {

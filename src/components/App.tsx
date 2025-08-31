@@ -7,9 +7,17 @@ export default function App() {
   const [isClient, setIsClient] = useState(false);
   const [user, setUser] = useState(getUser());
   const [loading, setLoading] = useState(getLoading());
+  const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
     setIsClient(true);
+    
+    // Check for auth errors from URL parameters
+    const storedError = sessionStorage.getItem('authError');
+    if (storedError) {
+      setAuthError(storedError);
+      sessionStorage.removeItem('authError');
+    }
     
     // Subscribe to auth changes
     const unsubscribe = subscribeToAuth(() => {
@@ -38,5 +46,5 @@ export default function App() {
     );
   }
 
-  return user ? <Dashboard /> : <LoginForm />;
+  return user ? <Dashboard /> : <LoginForm authError={authError} />;
 }

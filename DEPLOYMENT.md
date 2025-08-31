@@ -1,5 +1,20 @@
 # Deployment Guide
 
+## Environment Variables
+
+Create a `.env` file in your project root with the following variables:
+
+```env
+PUBLIC_SUPABASE_URL=your_supabase_project_url
+PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+PUBLIC_SITE_URL=https://yourdomain.com
+```
+
+**Important:** 
+- For **Pro Plan users**: Set `PUBLIC_SITE_URL` to your live domain in production
+- For **Free Plan users**: The app automatically detects the correct domain from `window.location.origin`
+- This ensures email confirmation links work correctly when users register from mobile devices or different browsers
+
 ## Database Setup
 
 ### 1. Run the Updated Schema
