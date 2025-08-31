@@ -167,7 +167,7 @@ export default function EntriesList({ currentTheme, selectedDate, onDateChange }
             <ChevronLeft className="h-5 w-5" />
           </button>
           
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
                                        <input
                 type="date"
                 value={localSelectedDate.getFullYear() + '-' + 
@@ -192,7 +192,7 @@ export default function EntriesList({ currentTheme, selectedDate, onDateChange }
                  }}
                  className="px-3 py-1 text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-md hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
                >
-                 Today
+                 Go to Today
                </button>
              )}
           </div>
