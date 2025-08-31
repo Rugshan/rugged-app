@@ -79,6 +79,7 @@ export default function Metrics({ currentTheme }: { currentTheme?: boolean }) {
     }
 
     try {
+      const now = new Date();
       const endDate = new Date();
       const startDate = new Date();
       
@@ -87,11 +88,18 @@ export default function Metrics({ currentTheme }: { currentTheme?: boolean }) {
         startDate.setHours(0, 0, 0, 0);
         endDate.setHours(23, 59, 59, 999);
       } else if (timeRange === 'week') {
-        startDate.setDate(endDate.getDate() - 7);
+        // For week view, get last 7 days including today
+        startDate.setDate(endDate.getDate() - 6); // 7 days total (including today)
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(23, 59, 59, 999);
       } else {
-        startDate.setMonth(endDate.getMonth() - 1);
+        // For month view, get last 30 days including today
+        startDate.setDate(endDate.getDate() - 29); // 30 days total (including today)
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(23, 59, 59, 999);
       }
 
+      // Query database for entries in the date range
       const { data, error } = await supabase
         .from('entries')
         .select('*')
@@ -142,14 +150,29 @@ export default function Metrics({ currentTheme }: { currentTheme?: boolean }) {
       daysToShow = 30;
     }
     
-    for (let i = daysToShow - 1; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split('T')[0];
+    // Calculate date range
+    const startDate = new Date(today);
+    if (timeRange === 'daily') {
+      startDate.setDate(today.getDate());
+    } else if (timeRange === 'week') {
+      startDate.setDate(today.getDate() - 6);
+    } else {
+      startDate.setDate(today.getDate() - 29);
+    }
+    
+    // Generate data for each day
+    for (let i = 0; i < daysToShow; i++) {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + i);
       
-      const dayEntries = entries.filter(entry => 
-        entry.created_at.startsWith(dateStr)
-      );
+      const dateStr = date.toLocaleDateString('en-CA'); // YYYY-MM-DD format
+      
+      // Filter entries for this specific day
+      const dayEntries = entries.filter(entry => {
+        const entryDate = new Date(entry.created_at);
+        const entryDateStr = entryDate.toLocaleDateString('en-CA');
+        return entryDateStr === dateStr;
+      });
       
       const dayData: WeeklyData = {
         date: dateStr,
@@ -212,7 +235,9 @@ export default function Metrics({ currentTheme }: { currentTheme?: boolean }) {
   };
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-US', { 
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString('en-US', { 
       weekday: 'short', 
       month: 'short', 
       day: 'numeric' 

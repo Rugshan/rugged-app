@@ -47,17 +47,24 @@ export default function EntriesList({ currentTheme, selectedDate, onDateChange }
     }
 
     try {
+      // Get user's timezone offset in minutes
+      const timezoneOffset = new Date().getTimezoneOffset();
+      
       const startOfDay = new Date(localSelectedDate);
       startOfDay.setHours(0, 0, 0, 0);
       
       const endOfDay = new Date(localSelectedDate);
       endOfDay.setHours(23, 59, 59, 999);
 
+      // Convert to UTC for database query, accounting for timezone offset
+      const utcStartOfDay = new Date(startOfDay.getTime() - (timezoneOffset * 60000));
+      const utcEndOfDay = new Date(endOfDay.getTime() - (timezoneOffset * 60000));
+
       const { data, error } = await supabase
         .from('entries')
         .select('*')
-        .gte('created_at', startOfDay.toISOString())
-        .lte('created_at', endOfDay.toISOString())
+        .gte('created_at', utcStartOfDay.toISOString())
+        .lte('created_at', utcEndOfDay.toISOString())
         .order('created_at', { ascending: false });
 
       if (error) {
