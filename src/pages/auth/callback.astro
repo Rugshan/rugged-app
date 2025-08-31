@@ -20,15 +20,11 @@
                        // Determine the correct domain to redirect to
             const getRedirectDomain = () => {
               // Use environment variable if available (for production)
-              const envAppUrl = import.meta.env.PUBLIC_SITE_URL;
+              const envAppUrl = import.meta.env.NEXT_PUBLIC_APP_URL || import.meta.env.PUBLIC_SITE_URL;
               if (envAppUrl) {
                 return envAppUrl;
               }
               
-              // If we're on localhost, redirect to production
-              if (window.location.hostname === 'localhost') {
-                return 'https://rugged.rugshan.dev';
-              }
               // Otherwise use the current domain
               return window.location.origin;
             };

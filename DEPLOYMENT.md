@@ -13,7 +13,9 @@ PUBLIC_SITE_URL=https://yourdomain.com
 **Important:** 
 - Set `PUBLIC_SITE_URL` to your live domain in production (e.g., `https://rugged.rugshan.dev`)
 - This ensures email confirmation links work correctly when users register from mobile devices or different browsers
-- The app will use this environment variable for all redirects and email confirmations
+- **Also configure Supabase Dashboard** → Authentication → URL Configuration:
+  - Set Site URL to your production domain
+  - Add your production domain to Redirect URLs
 
 ## Database Setup
 
