@@ -121,7 +121,12 @@ export default function EntryForm({ onEntryAdded, currentTheme, selectedDate }: 
                 <button
                   key={entryType.value}
                   type="button"
-                  onClick={() => setType(entryType.value)}
+                  onClick={() => {
+                      setType(entryType.value);
+                      setNotes('');
+                      setValue('');
+                  }}
+
                   className={`p-2 rounded-lg border-2 transition-colors ${
                     type === entryType.value
                       ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
@@ -153,7 +158,10 @@ export default function EntryForm({ onEntryAdded, currentTheme, selectedDate }: 
                   <button
                     key={quickAdd.id}
                     type="button"
-                    onClick={() => setValue(quickAdd.amount.toString())}
+                    onClick={() => {
+                      setValue(quickAdd.amount.toString());
+                      setNotes(quickAdd.label);
+                    }}
                     className="px-3 py-1 text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-md hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
                   >
                     {quickAdd.label} ({quickAdd.amount}{quickAdd.unit})
