@@ -13,8 +13,32 @@ import {
   Apple,
   Flame,
   Coffee,
-  Clock
+  Clock,
+  LineChart,
+  List
 } from 'lucide-react';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js';
+import type { ChartOptions } from 'chart.js';
+import { Line } from 'react-chartjs-2';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 interface WeeklyData {
   date: string;
@@ -168,6 +192,115 @@ export default function Metrics({ currentTheme }: { currentTheme?: boolean }) {
     });
   };
 
+  const getChartData = () => {
+    const weeklyData = getWeeklyData();
+    const labels = weeklyData.map(day => formatDate(day.date));
+    
+    const datasets = goals.map(goal => {
+      const entryType = entryTypes.find(t => t.value === goal.type);
+      const color = entryType?.color || 'text-blue-500';
+      
+      // Extract color values from Tailwind classes
+      const colorMap: { [key: string]: string } = {
+        'text-blue-500': '#3B82F6',
+        'text-red-500': '#EF4444',
+        'text-green-500': '#10B981',
+        'text-orange-500': '#F97316',
+        'text-yellow-600': '#CA8A04',
+        'text-purple-500': '#8B5CF6'
+      };
+      
+      const backgroundColor = colorMap[color] || '#3B82F6';
+      const borderColor = colorMap[color] || '#3B82F6';
+      
+      return {
+        label: `${goal.type.charAt(0).toUpperCase() + goal.type.slice(1)} (${goal.unit})`,
+        data: weeklyData.map(day => {
+          const value = (day as any)[goal.type] || 0;
+          return value;
+        }),
+        borderColor: borderColor,
+        backgroundColor: backgroundColor + '20',
+        borderWidth: 2,
+        fill: false,
+        tension: 0.4,
+        pointBackgroundColor: borderColor,
+        pointBorderColor: '#ffffff',
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+      };
+    });
+
+    return {
+      labels,
+      datasets
+    };
+  };
+
+  const chartOptions: ChartOptions<'line'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+        labels: {
+          usePointStyle: true,
+          padding: 20,
+          color: currentTheme ? '#6B7280' : '#D1D5DB',
+          font: {
+            size: 12
+          }
+        }
+      },
+      tooltip: {
+        backgroundColor: currentTheme ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.95)',
+        titleColor: currentTheme ? '#ffffff' : '#111827',
+        bodyColor: currentTheme ? '#ffffff' : '#111827',
+        borderColor: currentTheme ? '#374151' : '#D1D5DB',
+        borderWidth: 1,
+        cornerRadius: 8,
+        displayColors: true,
+        callbacks: {
+          label: function(context) {
+            return `${context.dataset.label}: ${context.parsed.y.toFixed(1)}`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: {
+          color: currentTheme ? '#E5E7EB' : '#374151'
+        },
+        ticks: {
+          color: currentTheme ? '#6B7280' : '#D1D5DB',
+          font: {
+            size: 11
+          }
+        }
+      },
+      y: {
+        grid: {
+          color: currentTheme ? '#E5E7EB' : '#374151'
+        },
+        ticks: {
+          color: currentTheme ? '#6B7280' : '#D1D5DB',
+          font: {
+            size: 11
+          },
+          callback: function(value) {
+            return value + '';
+          }
+        }
+      }
+    },
+    interaction: {
+      intersect: false,
+      mode: 'index' as const
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center py-8">
@@ -261,63 +394,88 @@ export default function Metrics({ currentTheme }: { currentTheme?: boolean }) {
         )}
       </div>
 
-      {/* Weekly Trends */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 transition-colors duration-200">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Daily Trends</h3>
-        {goals.length === 0 ? (
-          <div className="text-center py-8">
-            <BarChart3 className="h-12 w-12 mx-auto text-gray-400 dark:text-gray-500 mb-4" />
-            <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Goals to Track</h4>
-            <p className="text-gray-500 dark:text-gray-400 mb-4">
-              Set up goals in Settings to see your daily progress and trends.
-            </p>
-            <button
-              onClick={() => window.location.hash = '#settings'}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-            >
-              <Target className="h-4 w-4 mr-2" />
-              Set Up Goals
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {getWeeklyData().map((dayData) => (
-              <div key={dayData.date} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                <h4 className="font-medium text-gray-900 dark:text-white mb-3">
-                  {formatDate(dayData.date)}
-                </h4>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-                  {Object.entries(dayData).filter(([key]) => key !== 'date').map(([type, value]) => {
-                    const goal = goals.find(g => g.type === type);
-                    if (!goal) return null;
-                    
-                    const Icon = getGoalIcon(type);
-                    const color = getGoalColor(type);
-                    const isComplete = value >= goal.target;
-                    
-                    return (
-                      <div key={type} className="text-center">
-                        <Icon className={`h-5 w-5 mx-auto mb-1 ${color}`} />
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">
-                          {value.toFixed(1)}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {goal.unit}
-                        </p>
-                        {isComplete && (
-                          <div className="mt-1">
-                            <Target className="h-3 w-3 mx-auto text-green-500" />
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+             {/* Trends Visualization */}
+       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 transition-colors duration-200">
+         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Trends Visualization</h3>
+         {goals.length === 0 ? (
+           <div className="text-center py-8">
+             <LineChart className="h-12 w-12 mx-auto text-gray-400 dark:text-gray-500 mb-4" />
+             <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Goals to Visualize</h4>
+             <p className="text-gray-500 dark:text-gray-400 mb-4">
+               Set up goals in Settings to see your trends over time.
+             </p>
+             <button
+               onClick={() => window.location.hash = '#settings'}
+               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+             >
+               <Target className="h-4 w-4 mr-2" />
+               Set Up Goals
+             </button>
+           </div>
+         ) : (
+           <div className="h-80">
+             <Line data={getChartData()} options={chartOptions} />
+           </div>
+         )}
+       </div>
+
+       {/* Weekly Trends */}
+       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 transition-colors duration-200">
+         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Daily Trends</h3>
+         {goals.length === 0 ? (
+           <div className="text-center py-8">
+             <BarChart3 className="h-12 w-12 mx-auto text-gray-400 dark:text-gray-500 mb-4" />
+             <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Goals to Track</h4>
+             <p className="text-gray-500 dark:text-gray-400 mb-4">
+               Set up goals in Settings to see your daily progress and trends.
+             </p>
+             <button
+               onClick={() => window.location.hash = '#settings'}
+               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+             >
+               <Target className="h-4 w-4 mr-2" />
+               Set Up Goals
+             </button>
+           </div>
+         ) : (
+           <div className="space-y-4">
+             {getWeeklyData().map((dayData) => (
+               <div key={dayData.date} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                 <h4 className="font-medium text-gray-900 dark:text-white mb-3">
+                   {formatDate(dayData.date)}
+                 </h4>
+                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                   {Object.entries(dayData).filter(([key]) => key !== 'date').map(([type, value]) => {
+                     const goal = goals.find(g => g.type === type);
+                     if (!goal) return null;
+                     
+                     const Icon = getGoalIcon(type);
+                     const color = getGoalColor(type);
+                     const isComplete = value >= goal.target;
+                     
+                     return (
+                       <div key={type} className="text-center">
+                         <Icon className={`h-5 w-5 mx-auto mb-1 ${color}`} />
+                         <p className="text-sm font-medium text-gray-900 dark:text-white">
+                           {value.toFixed(1)}
+                         </p>
+                         <p className="text-xs text-gray-500 dark:text-gray-400">
+                           {goal.unit}
+                         </p>
+                         {isComplete && (
+                           <div className="mt-1">
+                             <Target className="h-3 w-3 mx-auto text-green-500" />
+                           </div>
+                         )}
+                       </div>
+                     );
+                   })}
+                 </div>
+               </div>
+             ))}
+           </div>
+         )}
+       </div>
 
       {/* Summary Stats */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 transition-colors duration-200">
