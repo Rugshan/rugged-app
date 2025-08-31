@@ -61,8 +61,11 @@ export async function signUp(email: string, password: string) {
   }
   
   try {
-    // Get the current site URL dynamically
-    const currentSiteUrl = typeof window !== 'undefined' ? window.location.origin : siteUrl;
+    // Use environment variable if available, otherwise fall back to window.location.origin
+    const currentSiteUrl = import.meta.env.PUBLIC_SITE_URL || 
+      (typeof window !== 'undefined' ? window.location.origin : siteUrl);
+    
+    console.log('Using site URL for email confirmation:', currentSiteUrl);
     
     const { data, error } = await supabase.auth.signUp({
       email,
