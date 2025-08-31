@@ -17,17 +17,23 @@
            // Handle the auth callback
            const { data, error } = await supabase.auth.getSession();
            
-           // Determine the correct domain to redirect to
-           const getRedirectDomain = () => {
-             // If we're on localhost, redirect to production
-             if (window.location.hostname === 'localhost') {
-               return 'https://rugged.rugshan.dev';
-             }
-             // Otherwise use the current domain
-             return window.location.origin;
-           };
-           
-           const redirectDomain = getRedirectDomain();
+                       // Determine the correct domain to redirect to
+            const getRedirectDomain = () => {
+              // Use environment variable if available (for production)
+              const envAppUrl = import.meta.env.PUBLIC_SITE_URL;
+              if (envAppUrl) {
+                return envAppUrl;
+              }
+              
+              // If we're on localhost, redirect to production
+              if (window.location.hostname === 'localhost') {
+                return 'https://rugged.rugshan.dev';
+              }
+              // Otherwise use the current domain
+              return window.location.origin;
+            };
+            
+            const redirectDomain = getRedirectDomain();
            
            if (error) {
              console.error('Auth callback error:', error);
@@ -40,17 +46,15 @@
              // No session, redirect to login
              window.location.href = `${redirectDomain}/?error=no_session`;
            }
-         } else {
-           const redirectDomain = window.location.hostname === 'localhost' ? 
-             'https://rugged.rugshan.dev' : window.location.origin;
-           window.location.href = `${redirectDomain}/?error=service_unavailable`;
-         }
-       } catch (err) {
-         console.error('Auth callback error:', err);
-         const redirectDomain = window.location.hostname === 'localhost' ? 
-           'https://rugged.rugshan.dev' : window.location.origin;
-         window.location.href = `${redirectDomain}/?error=auth_failed`;
-       }
+                   } else {
+            const redirectDomain = getRedirectDomain();
+            window.location.href = `${redirectDomain}/?error=service_unavailable`;
+          }
+        } catch (err) {
+          console.error('Auth callback error:', err);
+          const redirectDomain = getRedirectDomain();
+          window.location.href = `${redirectDomain}/?error=auth_failed`;
+        }
      };
 
     // Handle the callback when the page loads

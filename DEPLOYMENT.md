@@ -11,9 +11,9 @@ PUBLIC_SITE_URL=https://yourdomain.com
 ```
 
 **Important:** 
-- For **Pro Plan users**: Set `PUBLIC_SITE_URL` to your live domain in production
-- For **Free Plan users**: The app automatically detects the correct domain from `window.location.origin`
+- Set `PUBLIC_SITE_URL` to your live domain in production (e.g., `https://rugged.rugshan.dev`)
 - This ensures email confirmation links work correctly when users register from mobile devices or different browsers
+- The app will use this environment variable for all redirects and email confirmations
 
 ## Database Setup
 

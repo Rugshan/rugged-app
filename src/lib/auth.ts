@@ -61,17 +61,17 @@ export async function signUp(email: string, password: string) {
   }
   
   try {
-    // Use environment variable if available, otherwise fall back to window.location.origin
-    const currentSiteUrl = import.meta.env.PUBLIC_SITE_URL || 
+    // Use the environment variable for the app URL
+    const appUrl = import.meta.env.PUBLIC_SITE_URL || 
       (typeof window !== 'undefined' ? window.location.origin : siteUrl);
     
-    console.log('Using site URL for email confirmation:', currentSiteUrl);
+    console.log('Using app URL for email confirmation:', appUrl);
     
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${currentSiteUrl}/auth/callback`
+        emailRedirectTo: `${appUrl}/auth/callback`
       }
     });
     return { error };
