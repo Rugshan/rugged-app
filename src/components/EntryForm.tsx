@@ -74,8 +74,8 @@ export default function EntryForm({ onEntryAdded, currentTheme, selectedDate }: 
         return;
       }
 
-             // Use current time for the entry (let the database handle timezone conversion)
-       const entryTimestamp = new Date();
+             // Use selected date if provided, otherwise use current time
+       const entryTimestamp = selectedDate ? new Date(selectedDate) : new Date();
 
              const newEntry: NewEntry = {
          user_id: user.id,
