@@ -17,22 +17,39 @@
            // Handle the auth callback
            const { data, error } = await supabase.auth.getSession();
            
+           // Determine the correct domain to redirect to
+           const getRedirectDomain = () => {
+             // If we're on localhost, redirect to production
+             if (window.location.hostname === 'localhost') {
+               return 'https://rugged.rugshan.dev';
+             }
+             // Otherwise use the current domain
+             return window.location.origin;
+           };
+           
+           const redirectDomain = getRedirectDomain();
+           
            if (error) {
              console.error('Auth callback error:', error);
-             window.location.href = '/?error=auth_failed';
+             window.location.href = `${redirectDomain}/?error=auth_failed`;
            } else if (data.session) {
              // Successful authentication, redirect to dashboard
-             window.location.href = '/';
+             console.log('Authentication successful, redirecting to:', redirectDomain);
+             window.location.href = redirectDomain;
            } else {
              // No session, redirect to login
-             window.location.href = '/?error=no_session';
+             window.location.href = `${redirectDomain}/?error=no_session`;
            }
          } else {
-           window.location.href = '/?error=service_unavailable';
+           const redirectDomain = window.location.hostname === 'localhost' ? 
+             'https://rugged.rugshan.dev' : window.location.origin;
+           window.location.href = `${redirectDomain}/?error=service_unavailable`;
          }
        } catch (err) {
          console.error('Auth callback error:', err);
-         window.location.href = '/?error=auth_failed';
+         const redirectDomain = window.location.hostname === 'localhost' ? 
+           'https://rugged.rugshan.dev' : window.location.origin;
+         window.location.href = `${redirectDomain}/?error=auth_failed`;
        }
      };
 
